@@ -7,5 +7,5 @@
 #include <string.h>
 
 int main() {
-    printf("first commit");
+    printf("second commit");
 }
