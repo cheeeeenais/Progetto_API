@@ -6,6 +6,14 @@
 #include <stdio.h>
 #include <string.h>
 
+typedef struct node{
+    unsigned long sum;
+    int graph_index;
+    struct node *left;
+    struct node *right;
+    struct node *father;
+} WinnerNode;
+
 // skip the first number
 /*unsigned long secondNumberFinder(char *command) {
     int firstComma, secondComma, i = 0;
@@ -22,6 +30,22 @@
     return _atoi64(dest);
 }*/
 
+// TODO check prove.c && attention to the last space
+void printTree(WinnerNode *node) {
+    if (node->left != NULL) {
+        printTree(node->left);
+    } else {
+        printf("%d", node->graph_index);
+        return;
+    }
+    if (node->right != NULL) {
+        printTree(node->right);
+    } else {
+        printf("&d", node->graph_index);
+        return;
+    }
+}
+
 /**
  * @param command
  * @param index of the first number to begin the search with
@@ -30,12 +54,14 @@
 unsigned long weightParser(char *command, int index) {
     if (command[index] == '0') return 0;
     int i = 1;
-    while (command[index + i] != ',') i++;
+    while (index + i < strlen(command) && command[index + i] != ',') i++;
     char *dest = malloc(sizeof(unsigned long));
     return _atoi64(strncpy(dest, command + index, i));
 }
 
 int main(void) {
+
+    int k_count = 0;
 
     char *command = malloc(sizeof(unsigned long int) * 2);
     int d, k;
@@ -56,51 +82,168 @@ int main(void) {
     free(num2);
 
     unsigned long *graphVector = malloc(sizeof(d - 1) * sizeof(unsigned long));
-    unsigned long *winnersVector = malloc(sizeof(k) * sizeof(unsigned long));
+    WinnerNode *root = NULL, *max = NULL, *min = NULL;
     int winnerIndex = 0;
 
 
     //fgets(command, 16, stdin); // to read the first line, which is "AggiungiGrafo"
     while (fgets(command, 100, stdin) != NULL) {
 
+        int graph_index = 0;
+
         if (command[0] == 'A') {
 
-            int index = 1;
+            unsigned long sum = 0;
 
             // I have to take only d-1 numbers (d except the first one)
-            for (int d_count = 0; d_count < d; d_count++) {
-                int comma_count = 1;
-                while (comma_count < d) {
-                    while (command[index] != ',') index++;
-                    unsigned long weight = weightParser(command, index + 1); // I pass the command & index of the number after the comma
+            for (int d_count = 0; d_count < d; d_count++) { // vertical cycle
+
+                fgets(command, 100, stdin);
+
+                int index = 1;
+                int comma_count = 1; // comma_count counts how many commas I have to consider (d=4 -> 3 commas)
+                int graphVectorIndex = 0;
+                while (comma_count < d) { // horizontal cycle
+                    while (command[index] != ',') index++; // index is the index of the comma
+
+                    unsigned long weight;
+                    if (comma_count != d_count)  // not on the diagonal
+                        weight = weightParser(command, index + 1);
+                    else weight = 0; // on the diagonal
+
                     //printf("%lu\n", weight);
 
-                    int graphVectorIndex = 0;
-
-                    if (weight > 0 && weight > graphVector[index]) {
-                        graphVector[index] = weight;
+                    // UPDATING THE GRAPH VECTOR
+                    if (d_count == 0) // initialize the graphVector
+                        graphVector[graphVectorIndex] = weight;
+                    else if (d_count < d - 1) { // the graphVector already contains stuff && it's not the last graph
+                        if (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1]) {
+                            graphVector[graphVectorIndex] = weight;
+                        }
+                    } else if (d_count == d - 1) { // it's the last graph -> calculate the sum
+                        if (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1]) {
+                            graphVector[graphVectorIndex] = weight;
+                        }
+                        sum = sum + graphVector[graphVectorIndex];
                     }
+
+                    index++;
 
                     comma_count++;
                     graphVectorIndex++; // these two are the same thing
                 }
             }
 
-            // calculate the sum of the graphVector and assign it to the winnersVector
-            // TODO think of an algorithm
-            unsigned long sum = 0;
-            for (int i = 0; i < d - 1; ++i) {
-                sum = sum + graphVector[i];
-            }
-            if (sum < winnersVector[winnerIndex]) {
-                winnersVector[winnerIndex + 1] = winnersVector[winnerIndex];
-                winnersVector[winnerIndex] = sum;
-            }
-            else winnersVector[winnerIndex + 1] = sum;
+            // UPDATING THE WINNERS (VECTOR, LIST, *TREE*)
+            // assign the sum & graph_index in the right place
+            // TODO cases with the same sum
+            if (k_count < k) { // NOT FULL TREE
+                if (root == NULL) { // to begin with
 
-        }
-        else if (command[0] != 'T') {
-            for (int i = 0; i < k; ++i) {}
+                    root = malloc(sizeof(WinnerNode));
+                    root->sum = sum;
+                    root->graph_index = graph_index;
+                    root->left = root->right = root->father = NULL;
+                    max = root;
+                    min = root;
+                }
+                else if (sum > max->sum) { // new max
+                    WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                    new_node->sum = sum;
+                    new_node->graph_index = graph_index;
+                    new_node->right = new_node->left = NULL;
+                    new_node->father = max;
+                    max->right = new_node;
+                    max = new_node;
+                }
+                else if (sum < min->sum) { // new min
+                    WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                    new_node->sum = sum;
+                    new_node->graph_index = graph_index;
+                    new_node->right = new_node->left = NULL;
+                    new_node->father = min;
+                    min->left = new_node;
+                    min = new_node;
+                }
+                else { // in the middle
+
+                    // create the new node
+                    WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                    new_node->sum = sum;
+                    new_node->graph_index = graph_index;
+                    new_node->right = new_node->left = new_node->father = NULL;
+
+                    // research and insertion
+                    WinnerNode *pre = NULL, *curr = root;
+                    while (curr != NULL) {
+                        pre = curr;
+                        if (new_node->sum < curr->sum)
+                            curr = curr->left;
+                        else curr = curr->right;
+                    }
+                    new_node->father = pre;
+
+                    if (new_node->sum < pre->sum)
+                        pre->left = new_node;
+                    else pre->right = new_node;
+                }
+            } else { // FULL TREE
+                if (sum > max->sum) { // greater than max
+                    //free(new_node);
+                }
+                else if (sum < min->sum) { // lower than min
+
+                    // delete the max first
+                    WinnerNode *temp = max;
+                    max->father->right = NULL;
+                    max = max->father;
+                    free(temp);
+
+                    WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                    new_node->sum = sum;
+                    new_node->graph_index = graph_index;
+                    new_node->right = new_node->left = NULL;
+                    new_node->father = min;
+                    min->left = new_node;
+                    min = new_node;
+                }
+                else { // in the middle
+
+                    // delete the max first
+                    WinnerNode *temp = max;
+                    max->father->right = NULL;
+                    max = max->father;
+                    free(temp);
+
+                    // create the new node
+                    WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                    new_node->sum = sum;
+                    new_node->graph_index = graph_index;
+                    new_node->right = new_node->left = new_node->father = NULL;
+
+                    // research and insertion
+                    WinnerNode *pre = NULL, *curr = root;
+                    while (curr != NULL) {
+                        pre = curr;
+                        if (new_node->sum < curr->sum)
+                            curr = curr->left;
+                        else curr = curr->right;
+                    }
+                    new_node->father = pre;
+
+                    if (pre == NULL) // useless condition
+                        root = new_node;
+                    else if (new_node->sum < pre->sum)
+                        pre->left = new_node;
+                    else pre->right = new_node;
+
+                }
+            }
+
+            k_count++;
+
+        } else if (command[0] != 'T') { // print the elements of the tree
+            printTree(root);
         }
 
 
