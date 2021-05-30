@@ -30,20 +30,14 @@ typedef struct node{
     return _atoi64(dest);
 }*/
 
-// TODO check prove.c && attention to the last space
-void printTree(WinnerNode *node) {
-    if (node->left != NULL) {
-        printTree(node->left);
-    } else {
-        printf("%d", node->graph_index);
-        return;
-    }
-    if (node->right != NULL) {
-        printTree(node->right);
-    } else {
-        printf("&d", node->graph_index);
-        return;
-    }
+void printTree(WinnerNode *node, WinnerNode *max) {
+    if (node == NULL) return;
+
+    printTree(node->left, max);
+    printf("%d", node->graph_index);
+    if (node != max) printf(" ");
+    else printf("\n");
+    printTree(node->right, max);
 }
 
 /**
@@ -60,8 +54,6 @@ unsigned long weightParser(char *command, int index) {
 }
 
 int main(void) {
-
-    int k_count = 0;
 
     char *command = malloc(sizeof(unsigned long int) * 2);
     int d, k;
@@ -81,15 +73,14 @@ int main(void) {
     free(num1);
     free(num2);
 
-    unsigned long *graphVector = malloc(sizeof(d - 1) * sizeof(unsigned long));
+    // read input
+    //unsigned long *graphVector = malloc((d - 1) * sizeof(unsigned long));
+    unsigned long graphVector[d - 1];
     WinnerNode *root = NULL, *max = NULL, *min = NULL;
-    int winnerIndex = 0;
-
+    int graph_index = 0, k_count = 0;
 
     //fgets(command, 16, stdin); // to read the first line, which is "AggiungiGrafo"
     while (fgets(command, 100, stdin) != NULL) {
-
-        int graph_index = 0;
 
         if (command[0] == 'A') {
 
@@ -100,15 +91,16 @@ int main(void) {
 
                 fgets(command, 100, stdin);
 
-                int index = 1;
+                int line_index = 1;
                 int comma_count = 1; // comma_count counts how many commas I have to consider (d=4 -> 3 commas)
-                int graphVectorIndex = 0;
+                int graphVectorIndex = 0; // horizontal count
                 while (comma_count < d) { // horizontal cycle
-                    while (command[index] != ',') index++; // index is the index of the comma
+                    while (command[line_index] != ',') line_index++; // line_index is the line_index of the comma
+                    line_index++;
 
                     unsigned long weight;
                     if (comma_count != d_count)  // not on the diagonal
-                        weight = weightParser(command, index + 1);
+                        weight = weightParser(command, line_index);
                     else weight = 0; // on the diagonal
 
                     //printf("%lu\n", weight);
@@ -117,29 +109,25 @@ int main(void) {
                     if (d_count == 0) // initialize the graphVector
                         graphVector[graphVectorIndex] = weight;
                     else if (d_count < d - 1) { // the graphVector already contains stuff && it's not the last graph
-                        if (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1]) {
+                        if (graphVector[graphVectorIndex] == 0 || (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1])) {
                             graphVector[graphVectorIndex] = weight;
                         }
-                    } else if (d_count == d - 1) { // it's the last graph -> calculate the sum
-                        if (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1]) {
+                    } else if (d_count == d - 1) { // it's the last "graph" -> calculate the sum
+                        if (graphVector[graphVectorIndex] == 0 || (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1])) {
                             graphVector[graphVectorIndex] = weight;
                         }
                         sum = sum + graphVector[graphVectorIndex];
                     }
-
-                    index++;
 
                     comma_count++;
                     graphVectorIndex++; // these two are the same thing
                 }
             }
 
-            // UPDATING THE WINNERS (VECTOR, LIST, *TREE*)
+            // UPDATING THE WINNERS TREE
             // assign the sum & graph_index in the right place
-            // TODO cases with the same sum
             if (k_count < k) { // NOT FULL TREE
                 if (root == NULL) { // to begin with
-
                     root = malloc(sizeof(WinnerNode));
                     root->sum = sum;
                     root->graph_index = graph_index;
@@ -147,7 +135,7 @@ int main(void) {
                     max = root;
                     min = root;
                 }
-                else if (sum > max->sum) { // new max
+                else if (sum >= max->sum) { // new max (>= because if equal, it has to be at the end)
                     WinnerNode *new_node = malloc(sizeof(WinnerNode));
                     new_node->sum = sum;
                     new_node->graph_index = graph_index;
@@ -166,7 +154,6 @@ int main(void) {
                     min = new_node;
                 }
                 else { // in the middle
-
                     // create the new node
                     WinnerNode *new_node = malloc(sizeof(WinnerNode));
                     new_node->sum = sum;
@@ -179,8 +166,10 @@ int main(void) {
                         pre = curr;
                         if (new_node->sum < curr->sum)
                             curr = curr->left;
-                        else curr = curr->right;
+                        else //if (new_node->sum >= curr->sum)
+                            curr = curr->right;
                     }
+
                     new_node->father = pre;
 
                     if (new_node->sum < pre->sum)
@@ -188,17 +177,25 @@ int main(void) {
                     else pre->right = new_node;
                 }
             } else { // FULL TREE
-                if (sum > max->sum) { // greater than max
+                if (sum >= max->sum) { // greater than max
                     //free(new_node);
                 }
                 else if (sum < min->sum) { // lower than min
 
                     // delete the max first
                     WinnerNode *temp = max;
-                    max->father->right = NULL;
-                    max = max->father;
+                    if (max == root) {
+                        root = root->left;
+                        root->father = NULL;
+                        max = root;
+                    }
+                    else {
+                        max->father->right = NULL;
+                        max = max->father;
+                    }
                     free(temp);
 
+                    // create the new node and make it min
                     WinnerNode *new_node = malloc(sizeof(WinnerNode));
                     new_node->sum = sum;
                     new_node->graph_index = graph_index;
@@ -211,8 +208,15 @@ int main(void) {
 
                     // delete the max first
                     WinnerNode *temp = max;
-                    max->father->right = NULL;
-                    max = max->father;
+                    if (max == root) {
+                        root = root->left;
+                        root->father = NULL;
+                        max = root;
+                    }
+                    else {
+                        max->father->right = NULL;
+                        max = max->father;
+                    }
                     free(temp);
 
                     // create the new node
@@ -227,7 +231,8 @@ int main(void) {
                         pre = curr;
                         if (new_node->sum < curr->sum)
                             curr = curr->left;
-                        else curr = curr->right;
+                        else //if (new_node->sum >= curr->sum)
+                            curr = curr->right;
                     }
                     new_node->father = pre;
 
@@ -241,11 +246,19 @@ int main(void) {
             }
 
             k_count++;
-
-        } else if (command[0] != 'T') { // print the elements of the tree
-            printTree(root);
+            graph_index++;
         }
-
+        else if (command[0] == 'T') { // print the elements of the tree
+            if (k_count <= k) {
+                for (int i = 0; i < k_count; ++i) {
+                    printf("%d", i);
+                    if (i != k_count - 1)
+                        printf(" ");
+                    else printf("\n");
+                }
+            }
+            printTree(root, max);
+        }
 
     }
 

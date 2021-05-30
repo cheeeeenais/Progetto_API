@@ -3,4 +3,4 @@ project(Progetto_API C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Progetto_API prove.c)
+add_executable(Progetto_API progetto_api.c)
