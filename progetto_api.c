@@ -176,33 +176,47 @@ int main(void) {
                         pre->left = new_node;
                     else pre->right = new_node;
                 }
-            } else { // FULL TREE
+            }
+            else { // FULL TREE
                 if (sum >= max->sum) { // greater than max
                     //free(new_node);
                 }
                 else if (sum < min->sum) { // lower than min
-
-                    // delete the max first
-                    WinnerNode *temp = max;
-                    if (max == root) {
-                        root = root->left;
-                        root->father = NULL;
-                        max = root;
+                    if (min == max && max == root) { // full tree with only one node (k=1)
+                        root->sum = sum;
+                        root->graph_index = graph_index;
                     }
-                    else {
-                        max->father->right = NULL;
-                        max = max->father;
-                    }
-                    free(temp);
+                    else { // full tree with at least 2 nodes (k>=2)
+                        // delete the max first
+                        WinnerNode *temp = max;
+                        if (max == root) {
+                            root = root->left;
+                            root->father = NULL;
+                            max = root;
+                        }
+                        else {
+                            if (max->left == NULL) {
+                                max->father->right = NULL;
+                                max = max->father;
+                            }
+                            else {
+                                max->father->right = max->left;
+                                max->left->father = max->father;
+                                max = max->left;
+                                while (max->right != NULL) max = max->right;
+                            }
+                        }
+                        free(temp);
 
-                    // create the new node and make it min
-                    WinnerNode *new_node = malloc(sizeof(WinnerNode));
-                    new_node->sum = sum;
-                    new_node->graph_index = graph_index;
-                    new_node->right = new_node->left = NULL;
-                    new_node->father = min;
-                    min->left = new_node;
-                    min = new_node;
+                        // create the new node and make it min
+                        WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                        new_node->sum = sum;
+                        new_node->graph_index = graph_index;
+                        new_node->right = new_node->left = NULL;
+                        new_node->father = min;
+                        min->left = new_node;
+                        min = new_node;
+                    }
                 }
                 else { // in the middle
 
@@ -214,8 +228,16 @@ int main(void) {
                         max = root;
                     }
                     else {
-                        max->father->right = NULL;
-                        max = max->father;
+                        if (max->left == NULL) {
+                            max->father->right = NULL;
+                            max = max->father;
+                        }
+                        else {
+                            max->father->right = max->left;
+                            max->left->father = max->father;
+                            max = max->left;
+                            while (max->right != NULL) max = max->right;
+                        }
                     }
                     free(temp);
 
@@ -241,7 +263,6 @@ int main(void) {
                     else if (new_node->sum < pre->sum)
                         pre->left = new_node;
                     else pre->right = new_node;
-
                 }
             }
 
@@ -249,7 +270,8 @@ int main(void) {
             graph_index++;
         }
         else if (command[0] == 'T') { // print the elements of the tree
-            if (k_count <= k) {
+            if (k == 1) printf("%d\n", k_count - 1);
+            else if (k_count <= k) {
                 for (int i = 0; i < k_count; ++i) {
                     printf("%d", i);
                     if (i != k_count - 1)
@@ -257,7 +279,7 @@ int main(void) {
                     else printf("\n");
                 }
             }
-            printTree(root, max);
+            else printTree(root, max);
         }
 
     }
