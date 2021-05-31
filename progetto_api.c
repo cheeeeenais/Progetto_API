@@ -206,9 +206,9 @@ int main(void) {
                                 max->father->right = max->left;
                                 max->left->father = max->father;
                                 max = max->left;
-                                while (max->right != NULL) max = max->right;
                             }
                         }
+                        while (max->right != NULL) max = max->right;
                         free(temp);
 
                         // create the new node and make it min
@@ -239,9 +239,9 @@ int main(void) {
                             max->father->right = max->left;
                             max->left->father = max->father;
                             max = max->left;
-                            while (max->right != NULL) max = max->right;
                         }
                     }
+                    while (max->right != NULL) max = max->right;
                     free(temp);
 
                     // create the new node
