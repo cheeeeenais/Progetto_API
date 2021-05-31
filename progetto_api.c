@@ -7,7 +7,7 @@
 #include <string.h>
 
 typedef struct node{
-    unsigned long sum;
+    unsigned long long sum;
     int graph_index;
     struct node *left;
     struct node *right;
@@ -45,21 +45,22 @@ void printTree(WinnerNode *node, WinnerNode *max) {
  * @param index of the first number to begin the search with
  * @return the number between two commas or the last number
  */
-unsigned long weightParser(char *command, int index) {
+unsigned long weightParser(char *command, unsigned long index) {
     if (command[index] == '0') return 0;
-    int i = 1;
+    unsigned long i = 1;
     while (index + i < strlen(command) && command[index + i] != ',') i++;
-    char *dest = malloc(sizeof(unsigned long));
+    char *dest = malloc(sizeof(unsigned long long));
     return _atoi64(strncpy(dest, command + index, i));
 }
 
 int main(void) {
 
-    char *command = malloc(sizeof(unsigned long int) * 2);
+    char *command = malloc(sizeof(unsigned long long) * 2);
     int d, k;
 
     // get the first line (with d and k)
-    fgets(command, 100, stdin);
+    fgets(command, sizeof(unsigned long long) * 2, stdin);
+    //printf("%s", command);
 
     int space_pos = 0;
     while (command[space_pos] != ' ') space_pos++; // space_pos is at the position of the space_pos (starting from 0)
@@ -79,23 +80,22 @@ int main(void) {
     WinnerNode *root = NULL, *max = NULL, *min = NULL;
     int graph_index = 0, k_count = 0;
 
-    //fgets(command, 16, stdin); // to read the first line, which is "AggiungiGrafo"
-    while (fgets(command, 100, stdin) != NULL) {
+    while (fgets(command, 10000, stdin) != NULL) {
 
         if (command[0] == 'A') {
 
-            unsigned long sum = 0;
+            unsigned long long sum = 0;
 
             // I have to take only d-1 numbers (d except the first one)
             for (int d_count = 0; d_count < d; d_count++) { // vertical cycle
 
                 fgets(command, 100, stdin);
 
-                int line_index = 1;
-                int comma_count = 1; // comma_count counts how many commas I have to consider (d=4 -> 3 commas)
-                int graphVectorIndex = 0; // horizontal count
+                unsigned long line_index = 1;
+                unsigned long comma_count = 1; // comma_count counts how many commas I have to consider (d=4 -> 3 commas)
+                unsigned long graphVectorIndex = 0; // horizontal count
                 while (comma_count < d) { // horizontal cycle
-                    while (command[line_index] != ',') line_index++; // line_index is the line_index of the comma
+                    while (command[line_index] != ',') line_index++; // line_index is the line index of the comma
                     line_index++;
 
                     unsigned long weight;
@@ -106,17 +106,20 @@ int main(void) {
                     //printf("%lu\n", weight);
 
                     // UPDATING THE GRAPH VECTOR
-                    if (d_count == 0) // initialize the graphVector
+                    if (d_count == 0) { // initialize the graphVector
                         graphVector[graphVectorIndex] = weight;
-                    else if (d_count < d - 1) { // the graphVector already contains stuff && it's not the last graph
-                        if (graphVector[graphVectorIndex] == 0 || (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1])) {
-                            graphVector[graphVectorIndex] = weight;
-                        }
-                    } else if (d_count == d - 1) { // it's the last "graph" -> calculate the sum
-                        if (graphVector[graphVectorIndex] == 0 || (weight > 0 && graphVector[graphVectorIndex] + weight < graphVector[d_count - 1])) {
-                            graphVector[graphVectorIndex] = weight;
-                        }
                         sum = sum + graphVector[graphVectorIndex];
+                    }
+                    else {
+                        if (graphVector[d_count - 1] > 0) { // only if graphVector[d_count] is reachable
+                            if ((graphVector[graphVectorIndex] == 0 && weight > 0) ||
+                                (weight > 0 && graphVector[d_count - 1] + weight < graphVector[graphVectorIndex])) {
+                                // the path's weight is replace by a smaller one
+                                sum = sum - graphVector[graphVectorIndex];
+                                graphVector[graphVectorIndex] = graphVector[d_count - 1] + weight;
+                                sum = sum + graphVector[graphVectorIndex];
+                            }
+                        }
                     }
 
                     comma_count++;
@@ -262,7 +265,11 @@ int main(void) {
                         root = new_node;
                     else if (new_node->sum < pre->sum)
                         pre->left = new_node;
-                    else pre->right = new_node;
+                    else {
+                        pre->right = new_node;
+                        if (new_node->sum > max->sum) max = new_node;
+                    }
+
                 }
             }
 
@@ -270,7 +277,8 @@ int main(void) {
             graph_index++;
         }
         else if (command[0] == 'T') { // print the elements of the tree
-            if (k == 1) printf("%d\n", k_count - 1);
+            if (k_count == 0) printf("\n");
+            else if (k == 1) printf("%d\n", k_count - 1);
             else if (k_count <= k) {
                 for (int i = 0; i < k_count; ++i) {
                     printf("%d", i);
