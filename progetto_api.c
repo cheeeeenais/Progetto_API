@@ -31,7 +31,7 @@ void printTree(WinnerNode *node, WinnerNode *max) {
  * @param index of the first number to begin the search with
  * @return the number between two commas or the last number
  */
-unsigned long weightParser(char *command, unsigned long index) {
+/*unsigned long weightParser(char *command, unsigned long index) {
     if (command[index] == '0') return 0;
     unsigned long i = 1;
     while (index + i < strlen(command) && command[index + i] != ',') i++;
@@ -39,7 +39,7 @@ unsigned long weightParser(char *command, unsigned long index) {
     strncpy(dest, command + index, i);
     return _atoi64(dest);
 
-}
+}*/
 
 int main(void) {
 
@@ -47,7 +47,7 @@ int main(void) {
     int d, k;
 
     // get the first line (with d and k)
-    fgets(command, MAXCOMMAND, stdin);
+    command = fgets(command, MAXCOMMAND, stdin);
     //printf("%s", command);
 
     int space_pos = 0;
@@ -55,9 +55,15 @@ int main(void) {
 
     char *num1 = malloc(space_pos);
     char *num2 = malloc(10);
-
-    d = atoi(strncpy(num1, command, space_pos));
-    k = atoi(strncpy(num2, command + space_pos + 1, strlen(command) - space_pos - 2));
+    num1 = strncpy(num1, command, space_pos);
+    num2 = strncpy(num2, command + space_pos + 1, strlen(command) - space_pos - 2);
+    //char *ptr;
+    //d = strtol(num1, &ptr, 10);
+    //k = strtol(num2, &ptr, 10);
+    d = atoi(num1);
+    k = atoi(num2);
+    //d = atoi(strncpy(num1, command, space_pos));
+    //k = atoi(strncpy(num2, command + space_pos + 1, strlen(command) - space_pos - 2));
 
     free(num1);
     free(num2);
@@ -69,10 +75,11 @@ int main(void) {
     int graph_index = 0, k_count = 0;
 
     char *dest = malloc(sizeof(unsigned long long) * 2);
-    unsigned long weight;
+    int weight;
     unsigned long long sum;
 
-    while (fgets(command, MAXCOMMAND, stdin) != NULL) {
+    command = fgets(command, MAXCOMMAND, stdin);
+    while (command != NULL) {
 
         if (command[0] == 'A') {
 
@@ -82,7 +89,7 @@ int main(void) {
             // I have to take only d-1 numbers (d except the first one)
             for (int d_count = 0; d_count < d; d_count++) { // vertical cycle
 
-                fgets(command, MAXCOMMAND, stdin);
+                command = fgets(command, MAXCOMMAND, stdin);
 
                 unsigned long line_index = 1;
                 unsigned long comma_count = 1; // comma_count counts how many commas I have to consider (d=4 -> 3 commas)
@@ -98,9 +105,9 @@ int main(void) {
                         unsigned long i = 1;
                         while (line_index + i < strlen(command) && command[line_index + i] != ',') i++;
                         //char *dest = malloc(sizeof(unsigned long long) * 2);
-                        //strncpy(dest, command + line_index, i);
-                        strncpy_s(dest, sizeof(dest), command + line_index, i);
-                        weight = _atoi64(dest);
+                        dest = strncpy(dest, command + line_index, i);
+                        //if (strncpy_s(dest, sizeof(dest), command + line_index, i) == 0)
+                        weight = atoi(dest);
                     }
                     else weight = 0; // on the diagonal
 
@@ -298,6 +305,7 @@ int main(void) {
             else printTree(root, max);
         }
 
+        command = fgets(command, MAXCOMMAND, stdin);
     }
 
 }
