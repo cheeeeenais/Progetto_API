@@ -308,4 +308,5 @@ int main(void) {
         command = fgets(command, MAXCOMMAND, stdin);
     }
 
+    return 0;
 }
