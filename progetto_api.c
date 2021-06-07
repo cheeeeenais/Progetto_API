@@ -72,10 +72,10 @@ int main(void) {
     //unsigned long *graphVector = malloc((d - 1) * sizeof(unsigned long));
     unsigned long graphVector[d - 1];
     WinnerNode *root = NULL, *max = NULL, *min = NULL;
-    int graph_index = 0, k_count = 0;
+    unsigned int graph_index = 0, k_count = 0;
 
     char *dest = malloc(sizeof(unsigned long long) * 2);
-    int weight;
+    unsigned long weight;
     unsigned long long sum;
 
     command = fgets(command, MAXCOMMAND, stdin);
