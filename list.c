@@ -73,17 +73,18 @@ void insert(Min_heap_node *min_heap[], unsigned int src, unsigned int dest, unsi
     min_heap[heap_size - 1]->src = src;
     min_heap[heap_size - 1]->dest = dest;
     min_heap[heap_size - 1]->weight = weight;
-    min_heap_index = heap_size;
+    min_heap_index = heap_size - 1;
     while (min_heap_index > 0 &&
            // father.weight > child.weight
-           min_heap[(min_heap_index - 1) / 2]->weight > min_heap[min_heap_index - 1]->weight) {
-        swap(min_heap[(min_heap_index - 1) / 2], min_heap[min_heap_index - 1]);
+           min_heap[(min_heap_index - 1) / 2]->weight > min_heap[min_heap_index]->weight) {
+        swap(min_heap[(min_heap_index - 1) / 2], min_heap[min_heap_index]);
         // child <- father
         min_heap_index = (min_heap_index - 1) / 2;
     }
 }
 
 unsigned long long sum;
+unsigned int d_count = 0;
 
 void delete_min(Min_heap_node *min_heap[], Graph_starting_node *graph_starting_array[]) {
 
@@ -92,7 +93,7 @@ void delete_min(Min_heap_node *min_heap[], Graph_starting_node *graph_starting_a
     if (graph_starting_array[min_heap[0]->dest]->min_path > min_heap[0]->weight /*+ graph_starting_array[min_heap[0]->src]->min_path*/) {
         if (graph_starting_array[min_heap[0]->dest]->min_path < INFINITY) {
             sum = sum - graph_starting_array[min_heap[0]->dest]->min_path;
-        }
+        } else d_count++;
         graph_starting_array[min_heap[0]->dest]->min_path =   // UPDATE THE MIN_PATH in the graph_starting_array
                 min_heap[0]->weight /*+ graph_starting_array[min_heap[0]->src]->min_path*/;
         sum = sum + graph_starting_array[min_heap[0]->dest]->min_path;
@@ -420,7 +421,7 @@ int main(void) {
                     }
                 }
 
-                //printf("Sum of %d is %llu, and MAX is %d\n", graph_index, sum, max->graph_index);
+                printf("Sum of %d is %llu, and MAX is %d\n", graph_index, sum, max->graph_index);
 
                 if (k_count >= k && max->sum == 0) enough_zeros = 't';
 
