@@ -4,19 +4,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <string.h>
 
 #define MAXCOMMAND 2500
 #define INFINITY 4294967295
-//#define K_BIG  16000 // sorry in advance
-//#define D_BIG 400 // sorry in advance
 
 typedef struct graph_node{
     unsigned long weight;
-    //char color;
     unsigned int dest;
     struct graph_node *next;
-    // char until_here; ?????????
 } Graph_node;
 
 typedef struct graph_starting_node{
@@ -31,7 +26,6 @@ typedef struct min_heap_node{
     unsigned int src;
     unsigned int dest;
     unsigned long weight;
-    //char color;
 } Min_heap_node;
 
 Min_heap_node temp_for_swap;
@@ -90,13 +84,11 @@ void delete_min(Min_heap_node min_heap[], Graph_starting_node *graph_starting_ar
 
     if (heap_size < 1) return;
 
-    if (/*+ graph_starting_array[min_heap[0]->src]->min_path + */
-        min_heap[0].weight < graph_starting_array[min_heap[0].dest]->min_path) {
+    if (min_heap[0].weight < graph_starting_array[min_heap[0].dest]->min_path) {
         if (graph_starting_array[min_heap[0].dest]->min_path < INFINITY) {
             sum = sum - graph_starting_array[min_heap[0].dest]->min_path;
         } else d_count++;
-        graph_starting_array[min_heap[0].dest]->min_path =
-                min_heap[0].weight /*+ graph_starting_array[min_heap[0]->src]->min_path*/;
+        graph_starting_array[min_heap[0].dest]->min_path = min_heap[0].weight;
         sum = sum + graph_starting_array[min_heap[0].dest]->min_path;
     }
 
@@ -105,8 +97,7 @@ void delete_min(Min_heap_node min_heap[], Graph_starting_node *graph_starting_ar
         swap(&min_heap[0], &min_heap[heap_size - 1]);
         heap_size--;
         min_heapify(min_heap, 0);
-    } // modify the min_heap
-    //return;
+    }
 }
 
 typedef struct winner_node{
@@ -127,17 +118,6 @@ void printTree(WinnerNode *winner_node, WinnerNode *max) {
     printTree(winner_node->right, max);
 }
 
-//unsigned long val;
-
-/*unsigned long fast_atoi(char *str)
-{
-    val = 0;
-    while(*str && *str != '\n' && *str != ' ') {
-        val = val * 10 + (*str++ - '0');
-    }
-    return val;
-}*/
-
 int main(void) {
 
     char *command = malloc(sizeof(char) * MAXCOMMAND);
@@ -145,14 +125,7 @@ int main(void) {
 
     // get the first line (with d and k)
     command = fgets(command, MAXCOMMAND, stdin);
-    //printf("%s", command);
 
-    //unsigned int space_pos = 0;
-    //while (command[space_pos] != ' ') space_pos++; // space_pos is at the position of the space_pos (starting from 0)
-
-    //char *num1 = NULL, *num2 = NULL;
-    //num1 = malloc(sizeof(char) * (space_pos + 1));
-    //num2 = malloc(sizeof(char) * 10);
     unsigned int x = 0;
     while (command[x] != ' ') {
         d = d * 10 + command[x] - '0';
@@ -163,58 +136,20 @@ int main(void) {
         k = k * 10 + command[x] - '0';
         x++;
     }
-    //num1 = strncpy(num1, command, sizeof(char) * space_pos);
-    //num2 = strncpy(num2, command + space_pos + 1, sizeof(char) * (strlen(command) - space_pos - 2));
-    //num1[space_pos] = '\n';
-    //num2[strlen(command) - space_pos - 2] = '\n';
-    //d = atoi(num1);
-    //k = atoi(num2);
-    //d = fast_atoi(num1);
-    //k = fast_atoi(num2);
-
-    // sorry in advance
-    /*if (d == D_BIG && k == K_BIG) {
-        unsigned int graph_count = 0;
-        command = fgets(command, MAXCOMMAND, stdin);
-        while (command != NULL) {
-            if (command[0] == 'A') graph_count++;
-            else if (command[0] == 'T') {
-                for (unsigned long i = 0; i < graph_count; ++i) {
-                    printf("%lu", i);
-                    if (i != graph_count - 1) printf(" ");
-                    else printf("\n");
-                }
-            }
-
-            command = fgets(command, MAXCOMMAND, stdin);
-        }
-    }*/
-
-    //free(num1);
-    //free(num2);
 
     // read input
-    //unsigned long *graphVector = malloc((d - 1) * sizeof(unsigned long));
-    //unsigned long graphVector[d - 1];
-    //unsigned long graph_starting_node[d][d - 1];
     Graph_starting_node *graph_starting_array[d];
     Graph_node *graph_node = NULL, /**temp_for_free = malloc(sizeof(Graph_node)), */*graph_support = malloc(sizeof(Graph_node));
     Min_heap_node min_heap[d * d];
-    //Min_heap_node *min_heap_node = malloc(sizeof(Min_heap_node));
     WinnerNode *root = NULL, *max = NULL, *min = NULL;
 
     char first_time = 't';
 
-    //char *dest = malloc(20);
     unsigned long weight;
-    //unsigned long command_lenght;
-
     unsigned int src_node_index;
     unsigned int dest_node_index;
-
     unsigned int dest_to_remember;
     unsigned long weight_to_remember;
-
     unsigned long line_index;
     unsigned long i;
     unsigned int graph_index = 0, k_count = 0;
@@ -243,7 +178,6 @@ int main(void) {
                     graph_starting_array[src_node_index]->to_be_modified = graph_starting_array[src_node_index]->graph_node;
                     if (graph_starting_array[src_node_index]->graph_node == NULL) graph_starting_array[src_node_index]->it_was_null = 't';
                     else graph_starting_array[src_node_index]->it_was_null = 'f';
-                    //graph_starting_array[src_node_index]->it_was_null = 't';
 
                     command = fgets(command, MAXCOMMAND, stdin);
 
@@ -375,11 +309,6 @@ int main(void) {
 
                             dest_node_index++;
                         } // horizontal cycle finish
-
-                        /*if (graph_starting_array[src_node_index]->graph_node == NULL)
-                            graph_starting_array[src_node_index]->it_was_null = 't';
-                        else if (graph_starting_array[src_node_index]->graph_node != NULL)
-                            graph_starting_array[src_node_index]->it_was_null = 'f';*/
 
                     }
 
