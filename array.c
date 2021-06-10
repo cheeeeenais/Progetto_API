@@ -112,15 +112,15 @@ void printTree(WinnerNode *winner_node, WinnerNode *max) {
     if (winner_node == NULL) return;
 
     printTree(winner_node->left, max);
-    printf("%d", winner_node->graph_index);
-    if (winner_node != max) printf(" ");
-    else printf("\n");
+    //printf("%d", winner_node->graph_index);
+    if (winner_node != max) printf("%d ", winner_node->graph_index);
+    else printf("%d\n", winner_node->graph_index);
     printTree(winner_node->right, max);
 }
 
 int main(void) {
 
-    char *command = malloc(sizeof(char) * MAXCOMMAND);
+    char *command = malloc(MAXCOMMAND);
     unsigned int d = 0, k = 0;
 
     // get the first line (with d and k)
@@ -447,16 +447,24 @@ int main(void) {
                                 }
                             }
                             while (max->right != NULL) max = max->right;
-                            free(temp);
+                            //free(temp);
+
+                            // RECYCLING TEMP (MAX)
 
                             // create the new node and make it min
-                            WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                            /*WinnerNode *new_node = malloc(sizeof(WinnerNode));
                             new_node->sum = sum;
                             new_node->graph_index = graph_index;
                             new_node->right = new_node->left = NULL;
                             new_node->father = min;
                             min->left = new_node;
-                            min = new_node;
+                            min = new_node;*/
+                            temp->sum = sum;
+                            temp->graph_index = graph_index;
+                            temp->right = temp->left = NULL;
+                            temp->father = min;
+                            min->left = temp;
+                            min = temp;
                         }
                     } else { // in the middle
 
@@ -477,32 +485,44 @@ int main(void) {
                             }
                         }
                         while (max->right != NULL) max = max->right;
-                        free(temp);
+                        //free(temp);
+
+                        // RECYCLING TEMP (MAX)
 
                         // create the new node
-                        WinnerNode *new_node = malloc(sizeof(WinnerNode));
+                        /*WinnerNode *new_node = malloc(sizeof(WinnerNode));
                         new_node->sum = sum;
                         new_node->graph_index = graph_index;
-                        new_node->right = new_node->left = new_node->father = NULL;
+                        new_node->right = new_node->left = new_node->father = NULL;*/
+                        temp->sum = sum;
+                        temp->graph_index = graph_index;
+                        temp->right = temp->left = temp->father = NULL;
 
                         // research and insertion
                         WinnerNode *pre = NULL, *curr = root;
                         while (curr != NULL) {
                             pre = curr;
-                            if (new_node->sum < curr->sum)
+                            //if (new_node->sum < curr->sum)
+                            if (temp->sum < curr->sum)
                                 curr = curr->left;
                             else //if (new_node->sum >= curr->sum)
                                 curr = curr->right;
                         }
-                        new_node->father = pre;
+                        //new_node->father = pre;
+                        temp->father = pre;
 
                         if (pre == NULL) // useless condition
-                            root = new_node;
-                        else if (new_node->sum < pre->sum)
-                            pre->left = new_node;
+                            //root = new_node;
+                            root = temp;
+                        //else if (new_node->sum < pre->sum)
+                        else if (temp->sum < pre->sum)
+                            //pre->left = new_node;
+                            pre->left = temp;
                         else {
-                            pre->right = new_node;
-                            if (new_node->sum >= max->sum) max = new_node;
+                            //pre->right = new_node;
+                            pre->right = temp;
+                            //if (new_node->sum >= max->sum) max = new_node;
+                            if (temp->sum >= max->sum) max = temp;
                         }
 
                     }
@@ -529,9 +549,9 @@ int main(void) {
             else if (k == 1) printf("%d\n", k_count - 1);
             else if (k_count <= k) {
                 for (i = 0; i < k_count; ++i) {
-                    printf("%lu", i);
-                    if (i != k_count - 1) printf(" ");
-                    else printf("\n");
+                    //printf("%lu", i);
+                    if (i != k_count - 1) printf("%lu ", i);
+                    else printf("%lu\n", i);
                 }
             }
             else printTree(root, max);
