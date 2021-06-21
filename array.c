@@ -80,16 +80,16 @@ void insert(Min_heap_node min_heap[], unsigned int src, unsigned int dest, unsig
 unsigned long long sum;
 unsigned int d_count = 0;
 
-void delete_min(Min_heap_node min_heap[], Graph_starting_node *graph_starting_array[], unsigned int d) {
+void delete_min(Min_heap_node min_heap[], Graph_starting_node graph_starting_array[], unsigned int d) {
 
     if (heap_size < 1) return;
 
-    if (min_heap[0].weight < graph_starting_array[min_heap[0].dest]->min_path) {
-        if (graph_starting_array[min_heap[0].dest]->min_path < INFINITY) {
-            sum = sum - graph_starting_array[min_heap[0].dest]->min_path;
+    if (min_heap[0].weight < graph_starting_array[min_heap[0].dest].min_path) {
+        if (graph_starting_array[min_heap[0].dest].min_path < INFINITY) {
+            sum = sum - graph_starting_array[min_heap[0].dest].min_path;
         } else d_count++;
-        graph_starting_array[min_heap[0].dest]->min_path = min_heap[0].weight;
-        sum = sum + graph_starting_array[min_heap[0].dest]->min_path;
+        graph_starting_array[min_heap[0].dest].min_path = min_heap[0].weight;
+        sum = sum + graph_starting_array[min_heap[0].dest].min_path;
     }
 
     if (d_count >= d - 1) heap_size = 0;
@@ -132,7 +132,7 @@ int main(void) {
 
 
     // read input
-    Graph_starting_node *graph_starting_array[d];
+    Graph_starting_node graph_starting_array[d];
     Graph_node *graph_node = NULL, /**temp_for_free = malloc(sizeof(Graph_node)), */*graph_support = malloc(sizeof(Graph_node));
     Min_heap_node min_heap[d * d];
     WinnerNode *root = NULL, *max = NULL, *min = NULL;
@@ -162,16 +162,16 @@ int main(void) {
 
                 // initializing the (entire) graph (vector of lists)
                 if (first_time == 't') {
-                    graph_starting_array[src_node_index] = malloc(sizeof(Graph_starting_node));
-                    graph_starting_array[src_node_index]->graph_node = NULL;
+                    //graph_starting_array[src_node_index] = malloc(sizeof(Graph_starting_node));
+                    graph_starting_array[src_node_index].graph_node = NULL;
                 }
                 //graph_starting_array[src_node_index]->index = src_node_index;
                 /*if (src_node_index == 0) graph_starting_array[src_node_index]->min_path = 0;
-                else */graph_starting_array[src_node_index]->min_path = INFINITY;
-                graph_starting_array[src_node_index]->to_be_modified = graph_starting_array[src_node_index]->graph_node;
-                if (graph_starting_array[src_node_index]->graph_node == NULL)
-                    graph_starting_array[src_node_index]->it_was_null = 't';
-                else graph_starting_array[src_node_index]->it_was_null = 'f';
+                else */graph_starting_array[src_node_index].min_path = INFINITY;
+                graph_starting_array[src_node_index].to_be_modified = graph_starting_array[src_node_index].graph_node;
+                if (graph_starting_array[src_node_index].graph_node == NULL)
+                    graph_starting_array[src_node_index].it_was_null = 't';
+                else graph_starting_array[src_node_index].it_was_null = 'f';
 
                 command = fgets(command, MAXCOMMAND, stdin);
 
@@ -205,6 +205,7 @@ int main(void) {
 
                             if (src_node_index == 0) { // if STARTING NODE == 0 -> initializing the HEAP
                                 insert(min_heap, src_node_index, dest_node_index, weight);
+                                graph_starting_array[dest_node_index].min_path = weight;
                             }
                             else { // PUT THINGS IN THE GRAPH
                                 // TODO a little optimization
@@ -218,41 +219,41 @@ int main(void) {
                                 //if (min_heap[0].dest != dest_node_index || min_heap[0].weight >= weight) insert
 
                                 if (min_heap[0].dest != dest_node_index || min_heap[0].weight >= weight) {
-                                    if (graph_starting_array[src_node_index]->graph_node == NULL) {
+                                    if (graph_starting_array[src_node_index].graph_node == NULL) {
                                         graph_node = malloc(sizeof(Graph_node));
                                         graph_node->dest = dest_node_index;
                                         graph_node->weight = weight;
                                         graph_node->next = NULL;
-                                        graph_starting_array[src_node_index]->graph_node = graph_node;
-                                        graph_starting_array[src_node_index]->it_was_null = 't';
-                                        graph_starting_array[src_node_index]->to_be_modified = graph_node;
+                                        graph_starting_array[src_node_index].graph_node = graph_node;
+                                        graph_starting_array[src_node_index].it_was_null = 't';
+                                        graph_starting_array[src_node_index].to_be_modified = graph_node;
                                         // TO_BE_MODIFIED POINTS AT THE FIRST
                                     }
-                                    else if (graph_starting_array[src_node_index]->graph_node != NULL) {
-                                        if (graph_starting_array[src_node_index]->it_was_null == 't') {
+                                    else if (graph_starting_array[src_node_index].graph_node != NULL) {
+                                        if (graph_starting_array[src_node_index].it_was_null == 't') {
                                             graph_node = malloc(sizeof(Graph_node));
                                             graph_node->dest = dest_node_index;
                                             graph_node->weight = weight;
-                                            graph_node->next = graph_starting_array[src_node_index]->graph_node;
-                                            graph_starting_array[src_node_index]->graph_node = graph_node;
-                                            graph_starting_array[src_node_index]->to_be_modified = graph_node;
+                                            graph_node->next = graph_starting_array[src_node_index].graph_node;
+                                            graph_starting_array[src_node_index].graph_node = graph_node;
+                                            graph_starting_array[src_node_index].to_be_modified = graph_node;
                                             // TO_BE_MODIFIED CONTINUES TO POINT AT THE FIRST
                                         }
-                                        else if (graph_starting_array[src_node_index]->it_was_null == 'f') {
+                                        else if (graph_starting_array[src_node_index].it_was_null == 'f') {
                                             // IF THERE ARE ELEMENTS AVAILABLE TO BE MODIFIED
-                                            if (graph_starting_array[src_node_index]->to_be_modified != NULL) {
-                                                graph_starting_array[src_node_index]->to_be_modified->dest = dest_node_index;
-                                                graph_starting_array[src_node_index]->to_be_modified->weight = weight;
-                                                graph_starting_array[src_node_index]->to_be_modified = graph_starting_array[src_node_index]->to_be_modified->next;
+                                            if (graph_starting_array[src_node_index].to_be_modified != NULL) {
+                                                graph_starting_array[src_node_index].to_be_modified->dest = dest_node_index;
+                                                graph_starting_array[src_node_index].to_be_modified->weight = weight;
+                                                graph_starting_array[src_node_index].to_be_modified = graph_starting_array[src_node_index].to_be_modified->next;
                                                 // TO_BE_MODIFIED POINTS AT TO_BE_MODIFIED->NEXT
-                                            } else if (graph_starting_array[src_node_index]->to_be_modified == NULL) {
+                                            } else if (graph_starting_array[src_node_index].to_be_modified == NULL) {
                                                 // NO MORE ELEMENTS TO MODIFY -> CREATE NEW ONES AND PUT THEM ON TOP
                                                 // (to_be_modifies points to NULL at the end)
                                                 graph_node = malloc(sizeof(Graph_node));
                                                 graph_node->dest = dest_node_index;
                                                 graph_node->weight = weight;
-                                                graph_node->next = graph_starting_array[src_node_index]->graph_node;
-                                                graph_starting_array[src_node_index]->graph_node = graph_node;
+                                                graph_node->next = graph_starting_array[src_node_index].graph_node;
+                                                graph_starting_array[src_node_index].graph_node = graph_node;
                                                 //graph_starting_array[src_node_index]->to_be_modified = NULL;
                                                 // TO_BE_MODIFIED STAYS STILL (POINTS AT THE END)
                                             }
@@ -292,12 +293,13 @@ int main(void) {
                     delete_min(min_heap, graph_starting_array, d);
 
                     // putting adjacent nodes in the min_heap
-                    graph_support = graph_starting_array[dest_to_remember]->graph_node; // this is cycled
-                    if (graph_support == graph_starting_array[dest_to_remember]->to_be_modified &&
-                        graph_starting_array[dest_to_remember]->it_was_null == 't') {
+                    graph_support = graph_starting_array[dest_to_remember].graph_node; // this is cycled
+                    if (graph_support == graph_starting_array[dest_to_remember].to_be_modified &&
+                        graph_starting_array[dest_to_remember].it_was_null == 't') {
                         // if to_be_modifies is the first -> put everything in the heap
                         while (graph_support != NULL && finish == 'f') {
-                            if (graph_starting_array[graph_support->dest]->min_path == INFINITY &&
+                            if (graph_starting_array[graph_support->dest].min_path >= weight_to_remember +
+                                                                                       graph_support->weight &&
                                 d_count < d - 1) {
                                 if (heap_size > 0 && k_count >= k && max != NULL) {
                                         if (min_heap[0].weight > weight_to_remember +
@@ -330,9 +332,10 @@ int main(void) {
                     else {
                         // if to_be_modified is at some point of the list
                         while (graph_support != NULL &&
-                               graph_support != graph_starting_array[dest_to_remember]->to_be_modified &&
+                               graph_support != graph_starting_array[dest_to_remember].to_be_modified &&
                                finish == 'f') {
-                            if (graph_starting_array[graph_support->dest]->min_path == INFINITY &&
+                            if (graph_starting_array[graph_support->dest].min_path >= weight_to_remember +
+                                                                                       graph_support->weight &&
                                 d_count < d - 1) {
                                 if (heap_size > 0 && k_count >= k && max != NULL) {
                                     if (min_heap[0].weight > weight_to_remember +
@@ -537,9 +540,10 @@ int main(void) {
             first_time = 'f';
             finish = 'f';
 
-        } else if (command[0] == 'T') { // print the elements of the tree
+        }
+        else if (command[0] == 'T') { // print the elements of the tree
             if (k_count == 0) printf("\n");
-            else if (k == 1) printf("%d\n", k_count - 1);
+            //else if (k == 1) printf("%d\n", k_count - 1);
             else if (k_count <= k) {
                 for (i = 0; i < k_count; ++i) {
                     //printf("%lu", i);
